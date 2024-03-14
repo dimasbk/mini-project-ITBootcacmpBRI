@@ -5,8 +5,10 @@ namespace App\Exports;
 use App\Models\Absensi;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\Exportable;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMapping;
 
-class ReportExport implements FromQuery
+class ReportExport implements FromQuery, WithHeadings, WithMapping
 {
     use Exportable;
 
@@ -32,26 +34,14 @@ class ReportExport implements FromQuery
             $query->whereBetween('created_at', [$start, $end]);
         }
 
-        return $query;
-    }
-
-    public function map($absensi): array
-    {
-        return [
-            $absensi->materi->materi,
-            $absensi->kelas->nama_kelas,
-            $absensi->teaching_role,
-            $absensi->date,
-            $absensi->start,
-            $absensi->end,
-            $absensi->duration,
-            $absensi->id_code,
-        ];
+        return $query->with('materi')->with('kelas');
     }
 
     public function headings(): array
     {
         return [
+            'ID',
+            'ID Asisten',
             'Materi',
             'Nama Kelas',
             'Teaching Role',
@@ -60,6 +50,25 @@ class ReportExport implements FromQuery
             'End',
             'Duration',
             'ID Code',
+            'Data Created',
+            'Data Updated'
+        ];
+    }
+    public function map($absensi): array
+    {
+        return [
+            $absensi->id,
+            $absensi->id_asisten,
+            $absensi->materi->materi,
+            $absensi->kelas->nam_kelas,
+            $absensi->teaching_role,
+            $absensi->date,
+            $absensi->start,
+            $absensi->end,
+            strval($absensi->duration),
+            $absensi->id_code,
+            $absensi->created_at,
+            $absensi->updated_at,
         ];
     }
 }
